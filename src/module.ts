@@ -522,7 +522,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.trace.x = dX.points;
       this.trace.y = dY.points;
 
-      if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'surface') {
+      if (cfg.settings.type === 'scatter3d') {
         dZ = this.data[mapping.z];
         if (!dZ) {
           throw {message: 'Unable to find Z: ' + mapping.z};
