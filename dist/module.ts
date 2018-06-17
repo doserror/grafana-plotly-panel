@@ -242,7 +242,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   isAxisVisible(axis) {
     if (axis.idx === 3) {
-      return this.panel.pconfig.settings.type === 'scatter3d';
+      return this.panel.pconfig.settings.type === 'scatter3d' || this.panel.pconfig.settings.type === 'surface';
     }
     return true;
   }
@@ -251,7 +251,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     this.panel.pconfig.settings.marker.symbol = this.segs.symbol.value;
     this.onConfigChanged();
 
-    console.log(this.segs.symbol, this.panel.pconfig);
   }
 
   onPanelInitalized() {
@@ -292,7 +291,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         for (let i = 0; i < data.points.length; i++) {
           let idx = data.points[i].pointNumber;
           let ts = this.trace.ts[idx];
-          // console.log( 'CLICK!!!', ts, data );
           let msg =
             data.points[i].x.toPrecision(4) + ', ' + data.points[i].y.toPrecision(4);
           this.$rootScope.appEvent('alert-success', [
@@ -302,32 +300,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         }
       });
 
-      // if(false) {
-      //   this.graph.on('plotly_hover', (data, xxx) => {
-      //     console.log( 'HOVER!!!', data, xxx, this.mouse );
-      //     if(data.points.length>0) {
-      //       var idx = 0;
-      //       var pt = data.points[idx];
-
-      //       var body = '<div class="graph-tooltip-time">'+ pt.pointNumber +'</div>';
-      //       body += "<center>";
-      //       body += pt.x + ', '+pt.y;
-      //       body += "</center>";
-
-      //       this.$tooltip.html( body ).place_tt( this.mouse.pageX + 10, this.mouse.pageY );
-      //     }
-      //   }).on('plotly_unhover', (data) => {
-      //     this.$tooltip.detach();
-      //   });
-      // }
-
       this.graph.on('plotly_selected', data => {
         if (data.points.length === 0) {
           console.log('Nothign Selected', data);
           return;
         }
-
-        console.log('SELECTED', data);
 
         let min = Number.MAX_SAFE_INTEGER;
         let max = Number.MIN_SAFE_INTEGER;
@@ -344,8 +321,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         max += 1000;
 
         let range = {from: moment.utc(min), to: moment.utc(max)};
-
-        console.log('SELECTED!!!', min, max, data.points.length, range);
 
         this.timeSrv.setTime(range);
 
@@ -389,7 +364,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         z: null,
       };
 
-      //   console.log( "plotly data", dataList);
       let cfg = this.panel.pconfig;
       let mapping = cfg.mapping;
       let key = {
@@ -501,8 +475,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         mapping.z = dmapping.z;
       }
 
-      // console.log( "GOT", this.data, mapping );
-
       let dX = this.data[mapping.x];
       let dY = this.data[mapping.y];
       let dZ = null;
@@ -522,7 +494,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.trace.x = dX.points;
       this.trace.y = dY.points;
 
-      if (cfg.settings.type === 'scatter3d') {
+      if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'surface') {
         dZ = this.data[mapping.z];
         if (!dZ) {
           throw {message: 'Unable to find Z: ' + mapping.z};
@@ -532,7 +504,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.layout.scene.zaxis.title = dZ.name;
 
         this.trace.z = dZ.points;
-        console.log('3D', this.layout);
       } else {
         this.layout.xaxis.title = dX.name;
         this.layout.yaxis.title = dY.name;
@@ -561,6 +532,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.trace.marker.color = dC.points;
       }
     }
+
+      console.log("DATA", this.data);
     this.render();
   }
 

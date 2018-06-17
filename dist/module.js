@@ -219,14 +219,13 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                 };
                 PlotlyPanelCtrl.prototype.isAxisVisible = function (axis) {
                     if (axis.idx === 3) {
-                        return this.panel.pconfig.settings.type === 'scatter3d';
+                        return this.panel.pconfig.settings.type === 'scatter3d' || this.panel.pconfig.settings.type === 'surface';
                     }
                     return true;
                 };
                 PlotlyPanelCtrl.prototype.onSegsChanged = function () {
                     this.panel.pconfig.settings.marker.symbol = this.segs.symbol.value;
                     this.onConfigChanged();
-                    console.log(this.segs.symbol, this.panel.pconfig);
                 };
                 PlotlyPanelCtrl.prototype.onPanelInitalized = function () {
                     this.onConfigChanged();
@@ -271,7 +270,6 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                                 console.log('Nothign Selected', data);
                                 return;
                             }
-                            console.log('SELECTED', data);
                             var min = Number.MAX_SAFE_INTEGER;
                             var max = Number.MIN_SAFE_INTEGER;
                             for (var i = 0; i < data.points.length; i++) {
@@ -283,7 +281,6 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                             min -= 1000;
                             max += 1000;
                             var range = { from: moment_1.default.utc(min), to: moment_1.default.utc(max) };
-                            console.log('SELECTED!!!', min, max, data.points.length, range);
                             _this.timeSrv.setTime(range);
                             if (_this.graph) {
                                 Plotly.Plots.purge(_this.graph);
@@ -443,7 +440,7 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                         this.trace.ts = key.points;
                         this.trace.x = dX.points;
                         this.trace.y = dY.points;
-                        if (cfg.settings.type === 'scatter3d') {
+                        if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'surface') {
                             dZ = this.data[mapping.z];
                             if (!dZ) {
                                 throw { message: 'Unable to find Z: ' + mapping.z };
@@ -452,7 +449,6 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                             this.layout.scene.yaxis.title = dY.name;
                             this.layout.scene.zaxis.title = dZ.name;
                             this.trace.z = dZ.points;
-                            console.log('3D', this.layout);
                         }
                         else {
                             this.layout.xaxis.title = dX.name;
@@ -478,6 +474,7 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                             this.trace.marker.color = dC.points;
                         }
                     }
+                    console.log("DATA", this.data);
                     this.render();
                 };
                 PlotlyPanelCtrl.prototype.onConfigChanged = function () {
