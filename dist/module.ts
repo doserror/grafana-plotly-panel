@@ -242,7 +242,10 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   isAxisVisible(axis) {
     if (axis.idx === 3) {
-      return this.panel.pconfig.settings.type === 'scatter3d' || this.panel.pconfig.settings.type === 'surface';
+      return (
+        this.panel.pconfig.settings.type === 'scatter3d' ||
+        this.panel.pconfig.settings.type === 'mesh3d'
+      );
     }
     return true;
   }
@@ -250,7 +253,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   onSegsChanged() {
     this.panel.pconfig.settings.marker.symbol = this.segs.symbol.value;
     this.onConfigChanged();
-
   }
 
   onPanelInitalized() {
@@ -285,6 +287,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.layout.yaxis.title = old.yaxis.title;
       }
 
+      console.log('RENDER: ', this.graph, data, this.layout, options);
       Plotly.newPlot(this.graph, data, this.layout, options);
 
       this.graph.on('plotly_click', data => {
@@ -494,7 +497,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.trace.x = dX.points;
       this.trace.y = dY.points;
 
-      if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'surface') {
+      if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'mesh3d') {
         dZ = this.data[mapping.z];
         if (!dZ) {
           throw {message: 'Unable to find Z: ' + mapping.z};
@@ -533,7 +536,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       }
     }
 
-      console.log("DATA", this.data);
     this.render();
   }
 

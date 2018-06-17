@@ -219,7 +219,8 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                 };
                 PlotlyPanelCtrl.prototype.isAxisVisible = function (axis) {
                     if (axis.idx === 3) {
-                        return this.panel.pconfig.settings.type === 'scatter3d' || this.panel.pconfig.settings.type === 'surface';
+                        return (this.panel.pconfig.settings.type === 'scatter3d' ||
+                            this.panel.pconfig.settings.type === 'mesh3d');
                     }
                     return true;
                 };
@@ -253,6 +254,7 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                             this.layout.xaxis.title = old.xaxis.title;
                             this.layout.yaxis.title = old.yaxis.title;
                         }
+                        console.log('RENDER: ', this.graph, data, this.layout, options);
                         Plotly.newPlot(this.graph, data, this.layout, options);
                         this.graph.on('plotly_click', function (data) {
                             for (var i = 0; i < data.points.length; i++) {
@@ -440,7 +442,7 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                         this.trace.ts = key.points;
                         this.trace.x = dX.points;
                         this.trace.y = dY.points;
-                        if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'surface') {
+                        if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'mesh3d') {
                             dZ = this.data[mapping.z];
                             if (!dZ) {
                                 throw { message: 'Unable to find Z: ' + mapping.z };
@@ -474,7 +476,6 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                             this.trace.marker.color = dC.points;
                         }
                     }
-                    console.log("DATA", this.data);
                     this.render();
                 };
                 PlotlyPanelCtrl.prototype.onConfigChanged = function () {
