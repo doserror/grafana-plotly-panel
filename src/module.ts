@@ -100,6 +100,9 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
   segs: any;
   mouse: any;
   data: any;
+  xArray: Array<any>;
+  yArray: Array<any>;
+  zArray: Array<any>;
 
   // Used for the editor control
   subTabIndex: 0;
@@ -244,7 +247,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
     if (axis.idx === 3) {
       return (
         this.panel.pconfig.settings.type === 'scatter3d' ||
-        this.panel.pconfig.settings.type === 'mesh3d'
+        this.panel.pconfig.settings.type === 'mesh3d' ||
+        this.panel.pconfig.settings.type === 'surface'
       );
     }
     return true;
@@ -257,6 +261,55 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
 
   onPanelInitalized() {
     this.onConfigChanged();
+  }
+
+  convertXYZtoMesh() {
+    let meshArray = new Array();
+    let xUnique: Array<number> = new Array();
+    let yUnique: Array<number> = new Array();
+    let xIndex: number = 0;
+    let yIndex: number = 0;
+
+    // Extract and sort the unique values in xArray
+    for (let i = 0; i < this.xArray.length; i++) {
+      if (xUnique.indexOf(this.xArray[i]) === -1) {
+        xUnique.push(this.xArray[i]);
+      }
+    }
+
+    xUnique.sort((n1, n2) => n1 - n2);
+
+    // Extract and sort the unique values in yArray
+    for (let i = 0; i < this.yArray.length; i++) {
+      if (yUnique.indexOf(this.yArray[i]) === -1) {
+        yUnique.push(this.yArray[i]);
+      }
+    }
+
+    yUnique.sort((n1, n2) => n1 - n2);
+
+    // Set the first row
+    meshArray[0] = new Array();
+    meshArray[0][0] = null;
+    for (let i = 0; i < xUnique.length; i++) {
+      meshArray[0][i + 1] = xUnique[i];
+    }
+
+    for (let i = 0; i < yUnique.length; i++) {
+      meshArray[i + 1] = new Array();
+      meshArray[i + 1][0] = yUnique[i];
+      for (let j = 0; j < xUnique.length; j++) {
+        meshArray[i + 1][j + 1] = 0;
+      }
+    }
+
+    for (let i = 0; i < this.xArray.length; i++) {
+      xIndex = xUnique.indexOf(this.xArray[i]) + 1;
+      yIndex = yUnique.indexOf(this.yArray[i]) + 1;
+      meshArray[yIndex][xIndex] = this.zArray[i];
+    }
+
+    return meshArray;
   }
 
   onRender() {
@@ -287,7 +340,15 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.layout.yaxis.title = old.yaxis.title;
       }
 
-      console.log('RENDER: ', this.graph, data, this.layout, options);
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].type.indexOf('surface') === 0) {
+          this.xArray = data[i].x;
+          this.yArray = data[i].y;
+          this.zArray = data[i].z;
+          data[i].z = this.convertXYZtoMesh();
+        }
+      }
+
       Plotly.newPlot(this.graph, data, this.layout, options);
 
       this.graph.on('plotly_click', data => {
@@ -497,7 +558,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.trace.x = dX.points;
       this.trace.y = dY.points;
 
-      if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'mesh3d') {
+      if (
+        cfg.settings.type === 'scatter3d' ||
+        cfg.settings.type === 'mesh3d' ||
+        cfg.settings.type === 'surface'
+      ) {
         dZ = this.data[mapping.z];
         if (!dZ) {
           throw {message: 'Unable to find Z: ' + mapping.z};

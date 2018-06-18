@@ -220,7 +220,8 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                 PlotlyPanelCtrl.prototype.isAxisVisible = function (axis) {
                     if (axis.idx === 3) {
                         return (this.panel.pconfig.settings.type === 'scatter3d' ||
-                            this.panel.pconfig.settings.type === 'mesh3d');
+                            this.panel.pconfig.settings.type === 'mesh3d' ||
+                            this.panel.pconfig.settings.type === 'surface');
                     }
                     return true;
                 };
@@ -230,6 +231,43 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                 };
                 PlotlyPanelCtrl.prototype.onPanelInitalized = function () {
                     this.onConfigChanged();
+                };
+                PlotlyPanelCtrl.prototype.convertXYZtoMesh = function () {
+                    var meshArray = new Array();
+                    var xUnique = new Array();
+                    var yUnique = new Array();
+                    var xIndex = 0;
+                    var yIndex = 0;
+                    for (var i = 0; i < this.xArray.length; i++) {
+                        if (xUnique.indexOf(this.xArray[i]) === -1) {
+                            xUnique.push(this.xArray[i]);
+                        }
+                    }
+                    xUnique.sort(function (n1, n2) { return n1 - n2; });
+                    for (var i = 0; i < this.yArray.length; i++) {
+                        if (yUnique.indexOf(this.yArray[i]) === -1) {
+                            yUnique.push(this.yArray[i]);
+                        }
+                    }
+                    yUnique.sort(function (n1, n2) { return n1 - n2; });
+                    meshArray[0] = new Array();
+                    meshArray[0][0] = null;
+                    for (var i = 0; i < xUnique.length; i++) {
+                        meshArray[0][i + 1] = xUnique[i];
+                    }
+                    for (var i = 0; i < yUnique.length; i++) {
+                        meshArray[i + 1] = new Array();
+                        meshArray[i + 1][0] = yUnique[i];
+                        for (var j = 0; j < xUnique.length; j++) {
+                            meshArray[i + 1][j + 1] = 0;
+                        }
+                    }
+                    for (var i = 0; i < this.xArray.length; i++) {
+                        xIndex = xUnique.indexOf(this.xArray[i]) + 1;
+                        yIndex = yUnique.indexOf(this.yArray[i]) + 1;
+                        meshArray[yIndex][xIndex] = this.zArray[i];
+                    }
+                    return meshArray;
                 };
                 PlotlyPanelCtrl.prototype.onRender = function () {
                     var _this = this;
@@ -254,7 +292,14 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                             this.layout.xaxis.title = old.xaxis.title;
                             this.layout.yaxis.title = old.yaxis.title;
                         }
-                        console.log('RENDER: ', this.graph, data, this.layout, options);
+                        for (var i = 0; i < data.length; i++) {
+                            if (data[i].type.indexOf('surface') === 0) {
+                                this.xArray = data[i].x;
+                                this.yArray = data[i].y;
+                                this.zArray = data[i].z;
+                                data[i].z = this.convertXYZtoMesh();
+                            }
+                        }
                         Plotly.newPlot(this.graph, data, this.layout, options);
                         this.graph.on('plotly_click', function (data) {
                             for (var i = 0; i < data.points.length; i++) {
@@ -442,7 +487,9 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                         this.trace.ts = key.points;
                         this.trace.x = dX.points;
                         this.trace.y = dY.points;
-                        if (cfg.settings.type === 'scatter3d' || cfg.settings.type === 'mesh3d') {
+                        if (cfg.settings.type === 'scatter3d' ||
+                            cfg.settings.type === 'mesh3d' ||
+                            cfg.settings.type === 'surface') {
                             dZ = this.data[mapping.z];
                             if (!dZ) {
                                 throw { message: 'Unable to find Z: ' + mapping.z };

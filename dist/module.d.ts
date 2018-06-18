@@ -98,6 +98,9 @@ declare class PlotlyPanelCtrl extends MetricsPanelCtrl {
     segs: any;
     mouse: any;
     data: any;
+    xArray: Array<any>;
+    yArray: Array<any>;
+    zArray: Array<any>;
     subTabIndex: 0;
     constructor($scope: any, $injector: any, $window: any, $rootScope: any, uiSegmentSrv: any);
     getCssRule(selectorText: any): CSSStyleRule;
@@ -108,6 +111,7 @@ declare class PlotlyPanelCtrl extends MetricsPanelCtrl {
     isAxisVisible(axis: any): boolean;
     onSegsChanged(): void;
     onPanelInitalized(): void;
+    convertXYZtoMesh(): any[];
     onRender(): void;
     onDataSnapshotLoad(snapshot: any): void;
     onDataReceived(dataList: any): void;
