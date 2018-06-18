@@ -318,6 +318,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       return;
     }
 
+    if (this.trace.type.indexOf('surface') === 0) {
+      this.xArray = this.trace.x;
+      this.yArray = this.trace.y;
+      this.zArray = this.trace.z;
+      this.trace.z = this.convertXYZtoMesh();
+    }
+
     if (!this.initalized) {
       let s = this.panel.pconfig.settings;
 
@@ -338,15 +345,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       if (old) {
         this.layout.xaxis.title = old.xaxis.title;
         this.layout.yaxis.title = old.yaxis.title;
-      }
-
-      for (let i = 0; i < data.length; i++) {
-        if (data[i].type.indexOf('surface') === 0) {
-          this.xArray = data[i].x;
-          this.yArray = data[i].y;
-          this.zArray = data[i].z;
-          data[i].z = this.convertXYZtoMesh();
-        }
       }
 
       Plotly.newPlot(this.graph, data, this.layout, options);

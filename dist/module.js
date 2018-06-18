@@ -274,6 +274,12 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                     if (this.otherPanelInFullscreenMode() || !this.graph) {
                         return;
                     }
+                    if (this.trace.type.indexOf('surface') === 0) {
+                        this.xArray = this.trace.x;
+                        this.yArray = this.trace.y;
+                        this.zArray = this.trace.z;
+                        this.trace.z = this.convertXYZtoMesh();
+                    }
                     if (!this.initalized) {
                         var s = this.panel.pconfig.settings;
                         var options = {
@@ -291,14 +297,6 @@ System.register(["app/plugins/sdk", "lodash", "moment", "jquery", "./lib/plotly.
                         if (old) {
                             this.layout.xaxis.title = old.xaxis.title;
                             this.layout.yaxis.title = old.yaxis.title;
-                        }
-                        for (var i = 0; i < data.length; i++) {
-                            if (data[i].type.indexOf('surface') === 0) {
-                                this.xArray = data[i].x;
-                                this.yArray = data[i].y;
-                                this.zArray = data[i].z;
-                                data[i].z = this.convertXYZtoMesh();
-                            }
                         }
                         Plotly.newPlot(this.graph, data, this.layout, options);
                         this.graph.on('plotly_click', function (data) {

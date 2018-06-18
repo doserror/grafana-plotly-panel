@@ -248,7 +248,7 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             return (
                 this.panel.pconfig.settings.type === 'scatter3d' ||
                 this.panel.pconfig.settings.type === 'mesh3d' ||
-                this.panel.pconfig.settings.type === 'surface' 
+                this.panel.pconfig.settings.type === 'surface'
             );
         }
         return true;
@@ -263,43 +263,43 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         this.onConfigChanged();
     }
 
-    convertXYZtoMesh() { 
-        let meshArray = new Array(); 
+    convertXYZtoMesh() {
+        let meshArray = new Array();
         let xUnique: Array<number> = new Array();
         let yUnique: Array<number> = new Array();
         let xIndex: number = 0;
         let yIndex: number = 0;
 
         // Extract and sort the unique values in xArray
-        for(let i = 0; i < this.xArray.length; i++) {
-            if(xUnique.indexOf(this.xArray[i]) === -1) {
+        for (let i = 0; i < this.xArray.length; i++) {
+            if (xUnique.indexOf(this.xArray[i]) === -1) {
                 xUnique.push(this.xArray[i]);
             }
         }
 
-        xUnique.sort((n1,n2)=> n1 - n2);
+        xUnique.sort((n1, n2) => n1 - n2);
 
         // Extract and sort the unique values in yArray
-        for(let i = 0; i < this.yArray.length; i++) {
-            if(yUnique.indexOf(this.yArray[i]) === -1) {
+        for (let i = 0; i < this.yArray.length; i++) {
+            if (yUnique.indexOf(this.yArray[i]) === -1) {
                 yUnique.push(this.yArray[i]);
             }
         }
 
-        yUnique.sort((n1,n2)=> n1 - n2);
+        yUnique.sort((n1, n2) => n1 - n2);
 
-        // Set the first row 
+        // Set the first row
         meshArray[0] = new Array();
         meshArray[0][0] = null;
         for (let i = 0; i < xUnique.length; i++) {
-            meshArray[0][i+1] = xUnique[i];
+            meshArray[0][i + 1] = xUnique[i];
         }
 
         for (let i = 0; i < yUnique.length; i++) {
-            meshArray[i+1] = new Array();
-            meshArray[i+1][0] = yUnique[i];
-            for (let j = 0; j < xUnique.length; j++) { 
-                meshArray[i+1][j+1] = 0;
+            meshArray[i + 1] = new Array();
+            meshArray[i + 1][0] = yUnique[i];
+            for (let j = 0; j < xUnique.length; j++) {
+                meshArray[i + 1][j + 1] = 0;
             }
         }
 
@@ -316,6 +316,13 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
         // ignore fetching data if another panel is in fullscreen
         if (this.otherPanelInFullscreenMode() || !this.graph) {
             return;
+        }
+
+        if (this.trace.type.indexOf('surface') === 0) {
+            this.xArray = this.trace.x;
+            this.yArray = this.trace.y;
+            this.zArray = this.trace.z;
+            this.trace.z = this.convertXYZtoMesh();
         }
 
         if (!this.initalized) {
@@ -338,15 +345,6 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             if (old) {
                 this.layout.xaxis.title = old.xaxis.title;
                 this.layout.yaxis.title = old.yaxis.title;
-            }
-
-            for (let i = 0; i<data.length; i++) {
-                if(data[i].type.indexOf('surface') === 0) { 
-                    this.xArray = data[i].x;
-                    this.yArray = data[i].y;
-                    this.zArray = data[i].z;
-                    data[i].z = this.convertXYZtoMesh();
-                }
             }
 
             Plotly.newPlot(this.graph, data, this.layout, options);
@@ -558,10 +556,11 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
             this.trace.x = dX.points;
             this.trace.y = dY.points;
 
-            if (cfg.settings.type === 'scatter3d' || 
-                cfg.settings.type === 'mesh3d' || 
-                cfg.settings.type === 'surface') {
-
+            if (
+                cfg.settings.type === 'scatter3d' ||
+                cfg.settings.type === 'mesh3d' ||
+                cfg.settings.type === 'surface'
+            ) {
                 dZ = this.data[mapping.z];
                 if (!dZ) {
                     throw {message: 'Unable to find Z: ' + mapping.z};
