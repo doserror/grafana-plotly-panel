@@ -323,6 +323,8 @@ class PlotlyPanelCtrl extends MetricsPanelCtrl {
       this.yArray = this.trace.y;
       this.zArray = this.trace.z;
       this.trace.z = this.convertXYZtoMesh();
+      this.trace.x = null;
+      this.trace.y = null;
     }
 
     if (!this.initalized) {
